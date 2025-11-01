@@ -1,0 +1,67 @@
+{
+  "project_info": {
+    "project_number": "721774046319",
+    "project_id": "freshfold-31734",
+    "storage_bucket": "freshfold-31734.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721774046319:android:8357dddba632703f13b19a",
+        "android_client_info": {
+          "package_name": "com.earningfish.freshfold"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCzrNAuSp-MuU9K6dEXJGB8I-WGBfTjJA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721774046319:android:ee567f155de3622f13b19a",
+        "android_client_info": {
+          "package_name": "com.fresh_fold.pickup"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCzrNAuSp-MuU9K6dEXJGB8I-WGBfTjJA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:721774046319:android:5f2fdb55b071198e13b19a",
+        "android_client_info": {
+          "package_name": "com.fresh_fold.vendor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCzrNAuSp-MuU9K6dEXJGB8I-WGBfTjJA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
