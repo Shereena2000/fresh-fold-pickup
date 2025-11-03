@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../model/client_model.dart';
 import '../model/shedule_model.dart';
 import '../repository/order_manage_repository.dart';
+import '../../delivery/repository/delivery_repository.dart';
 import '../../../Settings/utils/p_colors.dart';
 
 class OrderCardData {
@@ -46,12 +47,14 @@ class OrderCardData {
 }
 
 class HomeViewModel extends ChangeNotifier {
-  final ShopkeeperOrderRepository _repository = ShopkeeperOrderRepository();
+  final OrderManageRepository _repository = OrderManageRepository();
+  final DeliveryRepository _deliveryRepository = DeliveryRepository();
 
   bool _isLoading = false;
   String? _errorMessage;
   List<ScheduleModel> _allSchedules = [];
   Map<String, ClientModel> _clientsCache = {};
+  Set<String> _takenOrderIds = {}; // Track which orders are taken
 
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
@@ -79,8 +82,10 @@ class HomeViewModel extends ChangeNotifier {
             schedule.pickupDate.month,
             schedule.pickupDate.day,
           );
+          // Filter out orders that have been taken by any driver
           return orderDate.isAfter(today) && 
-                 (schedule.status == 'confirmed' || schedule.status == 'ready');
+                 (schedule.status == 'confirmed' || schedule.status == 'ready') &&
+                 !_takenOrderIds.contains(schedule.scheduleId);
         })
         .map((schedule) => OrderCardData(
               schedule: schedule,
@@ -100,8 +105,10 @@ class HomeViewModel extends ChangeNotifier {
             schedule.pickupDate.month,
             schedule.pickupDate.day,
           );
+          // Filter out orders that have been taken by any driver
           return orderDate == today && 
-                 (schedule.status == 'confirmed' || schedule.status == 'ready');
+                 (schedule.status == 'confirmed' || schedule.status == 'ready') &&
+                 !_takenOrderIds.contains(schedule.scheduleId);
         })
         .map((schedule) => OrderCardData(
               schedule: schedule,
@@ -117,6 +124,9 @@ class HomeViewModel extends ChangeNotifier {
 
     try {
       _allSchedules = await _repository.getAllOrders();
+      
+      // Load taken orders to filter them out
+      await _loadTakenOrders();
       
       // Fetch client details for all unique user IDs
       final Set<String> userIds = _allSchedules.map((s) => s.userId).toSet();
@@ -142,6 +152,32 @@ class HomeViewModel extends ChangeNotifier {
       _isLoading = false;
       _errorMessage = 'Failed to load orders: ${e.toString()}';
       notifyListeners();
+    }
+  }
+  
+  /// Load all taken order IDs from all drivers
+  Future<void> _loadTakenOrders() async {
+    try {
+      _takenOrderIds.clear();
+      
+      // Get all drivers
+      final driversSnapshot = await _deliveryRepository.getAllDrivers();
+      
+      // For each driver, get their taken orders
+      for (String driverId in driversSnapshot) {
+        try {
+          final takenOrders = await _deliveryRepository.getDriverTakenOrders(driverId);
+          for (var takenOrder in takenOrders) {
+            _takenOrderIds.add(takenOrder.scheduleId);
+          }
+        } catch (e) {
+          debugPrint('Failed to fetch taken orders for driver $driverId: $e');
+        }
+      }
+      
+      debugPrint('Loaded ${_takenOrderIds.length} taken orders');
+    } catch (e) {
+      debugPrint('Failed to load taken orders: $e');
     }
   }
 

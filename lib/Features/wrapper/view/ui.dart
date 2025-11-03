@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 
 import '../../../Settings/utils/p_colors.dart';
 import '../../home/view/ui.dart';
+import '../../delivery/view/ui.dart';
 import '../../profile/view/ui.dart';
+import '../../menu/menu_screen.dart';
 import '../view_model/navigation_provider.dart';
 
 class WrapperScreen extends StatefulWidget {
@@ -25,14 +27,22 @@ class _WrapperScreenState extends State<WrapperScreen> {
     });
   }
 
-  final List<Widget> _pages = [HomeScreen(), PriceListScreen(), ProfileScreen()];
+  final List<Widget> _pages = [
+    HomeScreen(), 
+    DeliveryScreen(), 
+    PriceListScreen(), 
+    ProfileScreen(),
+    MenuScreen(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     final List<NavItem> navItems = [
       NavItem(icon: Icons.home, label: 'Home'),
+      NavItem(icon: Icons.delivery_dining, label: 'My Deliveries'),
       NavItem(icon: Icons.list_alt, label: 'Price List'),
       NavItem(icon: Icons.person, label: 'Profile'),
+      NavItem(icon: Icons.menu, label: 'Menu'),
     ];
 
     return Scaffold(

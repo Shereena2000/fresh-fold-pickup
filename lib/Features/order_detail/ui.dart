@@ -5,8 +5,10 @@ import 'package:fresh_fold_pickup/Settings/constants/sized_box.dart';
 import 'package:fresh_fold_pickup/Settings/utils/p_colors.dart';
 import 'package:fresh_fold_pickup/Settings/utils/p_pages.dart';
 import 'package:fresh_fold_pickup/Settings/utils/p_text_styles.dart';
+import 'package:fresh_fold_pickup/Settings/utils/call_utils.dart';
 import 'package:provider/provider.dart';
 import '../home/view_model/home_view_model.dart';
+import '../add_billing/view_model/billing_view_model.dart';
 import 'view_model/order_detail_view_model.dart';
 
 class OrderDetailScreen extends StatelessWidget {
@@ -183,7 +185,11 @@ class OrderDetailScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () {
-                            // TODO: Implement phone call functionality
+                            CallUtils.confirmAndCall(
+                              context,
+                              viewModel.phoneNumber,
+                              viewModel.customerName,
+                            );
                           },
                           icon: Icon(Icons.phone, color: PColors.white),
                           label: Text('Call'),
@@ -226,11 +232,48 @@ class OrderDetailScreen extends StatelessWidget {
                     ],
                   ),
                   SizeBoxH(20),
-                  // Add Billing button
-                  CustomElavatedTextButton(
-                    text: "Add Billing",
-                    onPressed: () {
-                      Navigator.pushNamed(context, PPages.billing);
+                  // Billing button
+                  Consumer<BillingViewModel>(
+                    builder: (context, billingViewModel, child) {
+                      // Check if billing already exists for this order
+                      final hasBilling = billingViewModel.currentBilling?.scheduleId == viewModel.orderData.schedule.scheduleId;
+                      final paymentStatus = billingViewModel.paymentStatus;
+                      
+                      String buttonText;
+                      IconData buttonIcon;
+                      
+                      if (hasBilling) {
+                        switch (paymentStatus) {
+                          case 'pay_request':
+                            buttonText = 'View Bill';
+                            buttonIcon = Icons.receipt;
+                            break;
+                          case 'paid':
+                            buttonText = 'View Bill';
+                            buttonIcon = Icons.check_circle;
+                            break;
+                          default:
+                            buttonText = 'View Bill';
+                            buttonIcon = Icons.receipt_long;
+                        }
+                      } else {
+                        buttonText = 'Set Bill Amount';
+                        buttonIcon = Icons.payment;
+                      }
+                      
+                      return CustomElavatedTextButton(
+                        text: buttonText,
+                        icon: Icon(buttonIcon, color: Colors.white, size: 20),
+                        onPressed: () {
+                          Navigator.pushNamed(
+                            context,
+                            PPages.billing,
+                            arguments: {
+                              'orderData': viewModel.orderData,
+                            },
+                          );
+                        },
+                      );
                     },
                   ),
                   SizeBoxH(20),
@@ -465,35 +508,115 @@ void _showConfirmDialog(
 ) {
   showDialog(
     context: context,
-    builder: (context) => AlertDialog(
-      title: Text('Confirm Status Update'),
-      content: Text('Are you sure you want to "$label"?'),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          child: Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: () {
-            viewModel.updateStatus(newStatus);
-            Navigator.pop(context);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Status updated successfully!'),
-                backgroundColor: PColors.successGreen,
-              ),
-            );
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: PColors.primaryColor,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: Text('Confirm', style: TextStyle(color: PColors.white)),
-        ),
-      ],
+    builder: (dialogContext) => _ConfirmStatusDialog(
+      label: label,
+      viewModel: viewModel,
+      newStatus: newStatus,
     ),
   );
+}
+
+class _ConfirmStatusDialog extends StatefulWidget {
+  final String label;
+  final OrderDetailViewModel viewModel;
+  final String newStatus;
+
+  const _ConfirmStatusDialog({
+    required this.label,
+    required this.viewModel,
+    required this.newStatus,
+  });
+
+  @override
+  State<_ConfirmStatusDialog> createState() => _ConfirmStatusDialogState();
+}
+
+class _ConfirmStatusDialogState extends State<_ConfirmStatusDialog> {
+  bool _isUpdating = false;
+
+  Future<void> _handleConfirm() async {
+    setState(() {
+      _isUpdating = true;
+    });
+
+    bool success = false;
+    String? errorMsg;
+
+    try {
+      success = await widget.viewModel.updateOrderStatus(widget.newStatus).timeout(
+        Duration(seconds: 30),
+        onTimeout: () => throw Exception('Update timed out. Please check your internet connection.'),
+      );
+
+      if (!success) {
+        errorMsg = widget.viewModel.errorMessage ?? 'Failed to update status';
+      }
+    } catch (e) {
+      success = false;
+      errorMsg = e.toString();
+    }
+
+    if (!mounted) return;
+
+    // Close dialog
+    Navigator.of(context).pop();
+
+    // Show result
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Status updated successfully!'),
+          backgroundColor: PColors.successGreen,
+          duration: Duration(seconds: 2),
+        ),
+      );
+      
+      // Navigate back to home
+      Navigator.of(context).pop();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(errorMsg ?? 'Failed to update status'),
+          backgroundColor: PColors.errorRed,
+          duration: Duration(seconds: 4),
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text(_isUpdating ? 'Updating...' : 'Confirm Status Update'),
+      content: _isUpdating
+          ? Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(color: PColors.primaryColor),
+                SizedBox(height: 16),
+                Text('Updating status to ${widget.newStatus}...'),
+              ],
+            )
+          : Text('Are you sure you want to "${widget.label}"?'),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      actions: _isUpdating
+          ? [] // No buttons while updating
+          : [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: _handleConfirm,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: PColors.primaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: Text('Confirm', style: TextStyle(color: PColors.white)),
+              ),
+            ],
+    );
+  }
 }

@@ -1,8 +1,16 @@
 import 'package:flutter/material.dart';
 import '../../home/view_model/home_view_model.dart';
+import '../../home/repository/order_manage_repository.dart';
 
 class OrderDetailViewModel extends ChangeNotifier {
   final OrderCardData orderData;
+  final OrderManageRepository _repository = OrderManageRepository();
+  
+  bool _isUpdating = false;
+  String? _errorMessage;
+  
+  bool get isUpdating => _isUpdating;
+  String? get errorMessage => _errorMessage;
   
   OrderDetailViewModel({required this.orderData});
 
@@ -61,10 +69,51 @@ class OrderDetailViewModel extends ChangeNotifier {
     return timeSlot;
   }
   
-  // Status update methods (to be implemented with repository)
-  Future<void> updateStatus(String newStatus) async {
-    // TODO: Implement status update with repository
-    // For now, just notify listeners
+  // Status update method
+  Future<bool> updateOrderStatus(String newStatus) async {
+    _isUpdating = true;
+    _errorMessage = null;
+    notifyListeners();
+    
+    try {
+      // Debug: Log the parameters
+      debugPrint('Updating order status:');
+      debugPrint('  userId: ${orderData.schedule.userId}');
+      debugPrint('  scheduleId: ${orderData.schedule.scheduleId}');
+      debugPrint('  newStatus: $newStatus');
+      
+      // Check if userId and scheduleId are valid
+      if (orderData.schedule.userId.isEmpty) {
+        throw Exception('User ID is empty');
+      }
+      
+      if (orderData.schedule.scheduleId.isEmpty) {
+        throw Exception('Schedule ID is empty');
+      }
+      
+      await _repository.updateOrderStatus(
+        orderData.schedule.userId,
+        orderData.schedule.scheduleId,
+        newStatus,
+      );
+      
+      debugPrint('Status updated successfully in Firebase');
+      
+      _isUpdating = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      debugPrint('Error updating status: $e');
+      _errorMessage = 'Failed to update status: ${e.toString()}';
+      _isUpdating = false;
+      notifyListeners();
+      return false;
+    }
+  }
+  
+  // Clear error message
+  void clearError() {
+    _errorMessage = null;
     notifyListeners();
   }
   

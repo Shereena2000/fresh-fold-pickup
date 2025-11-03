@@ -1,8 +1,10 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import '../../../Settings/utils/p_colors.dart';
 import '../../../Settings/utils/p_pages.dart';
+import '../../auth/view_model.dart/auth_view_model.dart';
 
 
 
@@ -94,16 +96,43 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _checkAuthAndNavigate() async {
     await Future.delayed(const Duration(seconds: 3)); // wait for splash animations
 
-    final user = FirebaseAuth.instance.currentUser;
-
     if (!mounted) return;
 
-    if (user != null) {
-      Navigator.of(context).pushNamedAndRemoveUntil(
-        PPages.wrapperPageUi,
-        (route) => false,
-      );
-    } else {
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      final authViewModel = context.read<AuthViewModel>();
+
+      if (user != null) {
+        // User is logged in, load driver data
+        await authViewModel.loadDriverData();
+        
+        if (!mounted) return;
+
+        // Check if driver data was loaded successfully
+        if (authViewModel.currentVendor != null) {
+          // Navigate to home
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            PPages.wrapperPageUi,
+            (route) => false,
+          );
+        } else {
+          // Driver data not found, go to registration
+          Navigator.of(context).pushNamedAndRemoveUntil(
+            PPages.registration,
+            (route) => false,
+          );
+        }
+      } else {
+        // No user logged in, go to login
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          PPages.login,
+          (route) => false,
+        );
+      }
+    } catch (e) {
+      debugPrint('Error checking auth: $e');
+      if (!mounted) return;
+      // On error, go to login
       Navigator.of(context).pushNamedAndRemoveUntil(
         PPages.login,
         (route) => false,

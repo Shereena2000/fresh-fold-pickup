@@ -200,7 +200,7 @@ class OrderCard extends StatelessWidget {
             SizeBoxH(10),
             CustomElavatedTextButton(
               text: "Take Order",
-              onPressed: () {},
+              onPressed: onTap, // Use onTap for Take Order action
               height: 45,
             ),
           ],

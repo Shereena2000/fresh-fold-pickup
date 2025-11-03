@@ -4,6 +4,11 @@ class  PickUpModel {
   final String uid;
   final String? fullName;
   final String? email;
+  final String? phoneNumber;
+  final String? location;
+  final String? vehicleType;
+  final String? vehicleNumber;
+  final String? profileImageUrl;
   final DateTime createdAt;
   final DateTime? updatedAt;
 
@@ -11,6 +16,11 @@ class  PickUpModel {
     required this.uid,
     this.fullName,
     this.email,
+    this.phoneNumber,
+    this.location,
+    this.vehicleType,
+    this.vehicleNumber,
+    this.profileImageUrl,
     required this.createdAt,
     this.updatedAt,
   });
@@ -20,6 +30,11 @@ class  PickUpModel {
       'uid': uid,
       'fullName': fullName,
       'email': email,
+      'phoneNumber': phoneNumber,
+      'location': location,
+      'vehicleType': vehicleType,
+      'vehicleNumber': vehicleNumber,
+      'profileImageUrl': profileImageUrl,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
@@ -30,6 +45,11 @@ class  PickUpModel {
       uid: map['uid'] ?? '',
       fullName: map['fullName'],
       email: map['email'],
+      phoneNumber: map['phoneNumber'],
+      location: map['location'],
+      vehicleType: map['vehicleType'],
+      vehicleNumber: map['vehicleNumber'],
+      profileImageUrl: map['profileImageUrl'],
       createdAt: map['createdAt'] is Timestamp
           ? (map['createdAt'] as Timestamp).toDate()
           : DateTime.parse(map['createdAt']),
@@ -45,6 +65,11 @@ class  PickUpModel {
     String? uid,
     String? fullName,
     String? email,
+    String? phoneNumber,
+    String? location,
+    String? vehicleType,
+    String? vehicleNumber,
+    String? profileImageUrl,
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
@@ -52,6 +77,11 @@ class  PickUpModel {
       uid: uid ?? this.uid,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
+      phoneNumber: phoneNumber ?? this.phoneNumber,
+      location: location ?? this.location,
+      vehicleType: vehicleType ?? this.vehicleType,
+      vehicleNumber: vehicleNumber ?? this.vehicleNumber,
+      profileImageUrl: profileImageUrl ?? this.profileImageUrl,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );

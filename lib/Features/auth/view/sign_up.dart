@@ -112,15 +112,14 @@ class SignUpScreen extends StatelessWidget {
                             : "Sign Up",
                         onPressed: provider.isLoading
                             ? () {}
-                            : () async {
+                              : () async {
                                 final success = await provider.signUp();
                                 if (success && context.mounted) {
                                   provider.clearError();
-                                  provider.clearSignupData();
-                                  Navigator.pushNamedAndRemoveUntil(
+                                  // Navigate to registration screen to collect additional info
+                                  Navigator.pushReplacementNamed(
                                     context,
-                                    PPages.wrapperPageUi,
-                                    (route) => false,
+                                    PPages.registration,
                                   );
                                 }
                               },

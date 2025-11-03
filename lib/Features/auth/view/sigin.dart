@@ -96,13 +96,24 @@ class LoginScreen extends StatelessWidget {
                                 : () async {
                                     final success = await provider.signIn();
                                     if (success && context.mounted) {
-                                         provider.clearError();
-                                  provider.clearLoginData();
-                                      Navigator.pushNamedAndRemoveUntil(
-                                        context,
-                                        PPages.wrapperPageUi,
-                                        (route) => false,
-                                      );
+                                      provider.clearError();
+                                      provider.clearLoginData();
+                                      
+                                      // Check if profile is complete
+                                      if (provider.isDriverProfileComplete) {
+                                        // Profile complete, go to home
+                                        Navigator.pushNamedAndRemoveUntil(
+                                          context,
+                                          PPages.wrapperPageUi,
+                                          (route) => false,
+                                        );
+                                      } else {
+                                        // Profile incomplete, go to registration
+                                        Navigator.pushReplacementNamed(
+                                          context,
+                                          PPages.registration,
+                                        );
+                                      }
                                     }
                                   },
                           ),

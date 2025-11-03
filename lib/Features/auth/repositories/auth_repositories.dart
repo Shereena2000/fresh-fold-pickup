@@ -36,19 +36,19 @@ class AuthRepository {
     }
   }
 
-  /// Register user with email (for email/password auth)
+  /// Register user with email (for email/password auth) - Save to drivers collection
   Future<void> registerUserWithEmail({
     required String uid,
     required String username,
     required String email,
   }) async {
-    PickUpModel vendor =  PickUpModel(
+    PickUpModel driver =  PickUpModel(
       uid: uid,
       fullName: username,
       email: email,
       createdAt: DateTime.now(),
     );
-    await saveVendorData(vendor);
+    await saveDriverData(driver);
   }
 
   /// Sign out the current user
@@ -95,6 +95,15 @@ class AuthRepository {
     }
   }
 
+  // Save driver data to drivers/ collection
+  Future<void> saveDriverData(PickUpModel user) async {
+    await _firestore
+        .collection('drivers')
+        .doc(user.uid)
+        .set(user.toMap(), SetOptions(merge: true));
+  }
+  
+  // Keep for backward compatibility (for vendors if needed)
   Future<void> saveVendorData(PickUpModel user) async {
     await _firestore
         .collection('vendor')
@@ -117,6 +126,37 @@ class AuthRepository {
     }
   }
 
+  /// Get driver data from Firestore (from drivers/ collection)
+  Future<PickUpModel?> getDriverData(String uid) async {
+    try {
+      DocumentSnapshot doc = await _firestore
+          .collection('drivers')
+          .doc(uid)
+          .get();
+
+      if (doc.exists) {
+        return PickUpModel.fromMap(doc.data() as Map<String, dynamic>);
+      }
+      return null;
+    } catch (e) {
+      throw Exception('Failed to load driver data: $e');
+    }
+  }
+
+  /// Stream driver data for real-time updates
+  Stream<PickUpModel?> streamDriverData(String uid) {
+    return _firestore
+        .collection('drivers')
+        .doc(uid)
+        .snapshots()
+        .map((snapshot) {
+      if (snapshot.exists) {
+        return PickUpModel.fromMap(snapshot.data() as Map<String, dynamic>);
+      }
+      return null;
+    });
+  }
+  
   /// Get vendor data from Firestore
   Future<PickUpModel?> getVendorData(String uid) async {
     try {

@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../model/client_model.dart';
 import '../model/shedule_model.dart';
 
-class ShopkeeperOrderRepository {
+class OrderManageRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Get all schedules from all users (for shopkeeper)
@@ -74,16 +75,30 @@ class ShopkeeperOrderRepository {
   /// Update order status
   Future<void> updateOrderStatus(String userId, String scheduleId, String newStatus) async {
     try {
-      await _firestore
+      debugPrint('Repository: Updating order status');
+      debugPrint('  Path: users/$userId/schedules/$scheduleId');
+      debugPrint('  New Status: $newStatus');
+      
+      final docRef = _firestore
           .collection('users')
           .doc(userId)
           .collection('schedules')
-          .doc(scheduleId)
-          .update({
+          .doc(scheduleId);
+      
+      // Check if document exists
+      final docSnapshot = await docRef.get();
+      if (!docSnapshot.exists) {
+        throw Exception('Order not found: users/$userId/schedules/$scheduleId');
+      }
+      
+      await docRef.update({
         'status': newStatus,
         'updatedAt': FieldValue.serverTimestamp(),
       });
+      
+      debugPrint('Repository: Status updated successfully');
     } catch (e) {
+      debugPrint('Repository Error: $e');
       throw Exception('Failed to update order status: $e');
     }
   }

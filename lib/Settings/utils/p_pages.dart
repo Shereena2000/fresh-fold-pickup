@@ -3,6 +3,7 @@ class PPages {
   static const String splash = "/splash";
   static const String login = "/login";
   static const String signUp = "/signUp";
+  static const String registration = "/registration";
   // static const String onboarding = "/onboarding";
   // static const String mobileVerifcation = "/mobileVerifcation";
   // static const String otpVerification = "/otpVerification";
@@ -12,11 +13,16 @@ class PPages {
   static const String billing = "/billing";
   static const String delivery = "/delivery";
   static const String earnings = "/earnings";
+  
+  // Menu pages
+  static const String privacyPolicy = "/privacyPolicy";
+  static const String helpSupport = "/helpSupport";
+  static const String about = "/about";
+  
   // static const String registrationPageUi = "/registrationPageUi";
   // static const String schedulePageUi = "/schedulePageUi";
   // static const String profilePageUi = "/profilePageUi";
   // static const String pickUpLocationPageUi = "/pickUpLocationPageUi";
-  // static const String privacyPolicyUi = "/privacyPolicyUi";
   // static const String notificationPageUi = "/notificationPageUi";
   // static const String priceListPageUi = "/priceListPageUi";
 }
