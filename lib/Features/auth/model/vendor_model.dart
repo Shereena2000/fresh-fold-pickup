@@ -26,7 +26,7 @@ class  PickUpModel {
   });
 
   Map<String, dynamic> toMap() {
-    return {
+    final map = {
       'uid': uid,
       'fullName': fullName,
       'email': email,
@@ -34,10 +34,15 @@ class  PickUpModel {
       'location': location,
       'vehicleType': vehicleType,
       'vehicleNumber': vehicleNumber,
-      'profileImageUrl': profileImageUrl,
+      'profileImageUrl': profileImageUrl, // This should save the Cloudinary URL
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
     };
+    
+    print('📦 PickUpModel.toMap() called');
+    print('   profileImageUrl value: $profileImageUrl');
+    
+    return map;
   }
 
   factory PickUpModel.fromMap(Map<String, dynamic> map) {
@@ -73,7 +78,12 @@ class  PickUpModel {
     DateTime? createdAt,
     DateTime? updatedAt,
   }) {
-    return PickUpModel(
+    print('🔧 PickUpModel.copyWith() called');
+    print('   Input profileImageUrl: $profileImageUrl');
+    print('   Current profileImageUrl: ${this.profileImageUrl}');
+    print('   Will use: ${profileImageUrl ?? this.profileImageUrl}');
+    
+    final newModel = PickUpModel(
       uid: uid ?? this.uid,
       fullName: fullName ?? this.fullName,
       email: email ?? this.email,
@@ -85,5 +95,9 @@ class  PickUpModel {
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
     );
+    
+    print('   Result profileImageUrl: ${newModel.profileImageUrl}');
+    
+    return newModel;
   }
 }

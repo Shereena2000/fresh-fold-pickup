@@ -4,13 +4,24 @@ class CloudinaryConfig {
   static const String apiKey = '692484724374318';
   static const String apiSecret = 'hIZ6N5OjvIFXks9wWAAcveYA8v8';
   
-  // Upload configuration
-  static const String uploadPreset = 'driver_profiles'; // Create this in Cloudinary dashboard
-  static const String promoFolder = 'driver_profiles';
+  // Upload configuration - MUST match your Cloudinary dashboard
+  static const String uploadPreset = 'fresh-fold'; // ⚠️ This MUST match your Cloudinary preset name exactly
+  static const String promoFolder = 'fresh_fold_public'; // Folder from preset
   
   // Upload URL
   static String get uploadUrl => 
       'https://api.cloudinary.com/v1_1/$cloudName/image/upload';
+  
+  // Debug: Print configuration
+  static void printConfig() {
+    print('════════════════════════════════════════');
+    print('📋 Cloudinary Configuration:');
+    print('   Cloud Name: $cloudName');
+    print('   Upload Preset: $uploadPreset');
+    print('   Folder: $promoFolder');
+    print('   Upload URL: $uploadUrl');
+    print('════════════════════════════════════════');
+  }
   
   // Get image URL with transformations
   static String getImageUrl(String publicId, {

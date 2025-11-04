@@ -17,12 +17,22 @@ class RegistrationScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Pre-fill form with existing driver data
-    WidgetsBinding.instance.addPostFrameCallback((_) {
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
       final authViewModel = context.read<AuthViewModel>();
+      
+      // CRITICAL: Ensure driver data is loaded from Firebase before editing
+      // This ensures we have the latest data including any recently uploaded profile image
+      if (authViewModel.getCurrentUser() != null && authViewModel.currentVendor == null) {
+        debugPrint('⚠️  currentVendor is null, loading driver data from Firebase...');
+        await authViewModel.loadDriverData();
+      }
       
       // If driver data exists, pre-fill all controllers
       if (authViewModel.currentVendor != null) {
         final driver = authViewModel.currentVendor!;
+        
+        debugPrint('✅ Pre-filling registration form with driver data');
+        debugPrint('   profileImageUrl: ${driver.profileImageUrl}');
         
         // Pre-fill readonly fields (Full Name and Email)
         if (driver.fullName != null && driver.fullName!.isNotEmpty) {
@@ -87,14 +97,17 @@ class RegistrationScreen extends StatelessWidget {
                               shape: BoxShape.circle,
                               color: PColors.primaryColor.withOpacity(0.1),
                               border: Border.all(
-                                color: PColors.primaryColor,
-                                width: 2,
+                                color: viewModel.selectedImagePath != null 
+                                    ? PColors.successGreen 
+                                    : PColors.primaryColor,
+                                width: viewModel.selectedImagePath != null ? 3 : 2,
                               ),
                             ),
                             child: ClipOval(
                               child: _buildProfileImage(viewModel),
                             ),
                           ),
+                          // Camera button
                           Positioned(
                             bottom: 0,
                             right: 0,
@@ -128,6 +141,25 @@ class RegistrationScreen extends StatelessWidget {
                               ),
                             ),
                           ),
+                          // New image badge
+                          if (viewModel.selectedImagePath != null)
+                            Positioned(
+                              top: 0,
+                              left: 0,
+                              child: Container(
+                                padding: EdgeInsets.all(6),
+                                decoration: BoxDecoration(
+                                  color: PColors.successGreen,
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.white, width: 2),
+                                ),
+                                child: Icon(
+                                  Icons.check,
+                                  size: 16,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -221,7 +253,20 @@ class RegistrationScreen extends StatelessWidget {
                     SizeBoxH(30),
                     
                     viewModel.isLoading
-                        ? CircularProgressIndicator()
+                        ? Column(
+                            children: [
+                              CircularProgressIndicator(),
+                              SizedBox(height: 12),
+                              Text(
+                                viewModel.selectedImagePath != null 
+                                    ? 'Uploading image...' 
+                                    : 'Saving...',
+                                style: PTextStyles.bodySmall.copyWith(
+                                  color: Colors.grey,
+                                ),
+                              ),
+                            ],
+                          )
                         : CustomElavatedTextButton(
                             onPressed: () async {
                               viewModel.clearError();
@@ -232,7 +277,9 @@ class RegistrationScreen extends StatelessWidget {
                                   SnackBar(
                                     content: Text(
                                       isEditMode 
-                                          ? 'Profile updated successfully!' 
+                                          ? viewModel.selectedImagePath != null
+                                              ? 'Profile and image updated successfully!'
+                                              : 'Profile updated successfully!'
                                           : 'Registration completed successfully!',
                                     ),
                                     backgroundColor: PColors.successGreen,
@@ -340,81 +387,21 @@ class RegistrationScreen extends StatelessWidget {
     );
   }
 
-  /// Handle image upload process
+  /// Handle image selection (just select, don't upload yet)
   Future<void> _handleImageUpload(BuildContext context, AuthViewModel viewModel) async {
     // Show source selection
     await viewModel.selectImageSource(context);
 
-    // If image was selected, upload it
+    // If image was selected, just show a preview
+    // The actual upload will happen when user clicks "Save Changes"
     if (viewModel.selectedImagePath != null && context.mounted) {
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Upload Photo'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 150,
-                height: 150,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: PColors.primaryColor, width: 2),
-                ),
-                child: ClipOval(
-                  child: Image.file(
-                    File(viewModel.selectedImagePath!),
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-              SizedBox(height: 16),
-              Text('Do you want to upload this photo as your profile picture?'),
-            ],
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                viewModel.clearSelectedImage();
-                Navigator.pop(context, false);
-              },
-              child: Text('Cancel'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: PColors.primaryColor,
-              ),
-              child: Text('Upload', style: TextStyle(color: Colors.white)),
-            ),
-          ],
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Image selected! Click "Save Changes" to upload.'),
+          backgroundColor: PColors.primaryColor,
+          duration: Duration(seconds: 2),
         ),
       );
-
-      if (confirmed == true && context.mounted) {
-        final success = await viewModel.uploadProfileImage();
-
-        if (context.mounted) {
-          if (success) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Profile photo uploaded successfully!'),
-                backgroundColor: PColors.successGreen,
-              ),
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(viewModel.errorMessage ?? 'Failed to upload photo'),
-                backgroundColor: PColors.errorRed,
-              ),
-            );
-          }
-        }
-      }
     }
   }
 }

@@ -336,24 +336,25 @@ class AuthViewModel extends ChangeNotifier {
   }
   
   /// Register user with additional profile details (from Registration Screen)
-  Future<bool> registerUser() async {
-    // Validate phone number
-    if (phoneController.text.isEmpty) {
-      _errorMessage = 'Please enter your phone number';
-      notifyListeners();
-      return false;
-    }
-
-    // Validate location
-    if (locationController.text.isEmpty) {
-      _errorMessage = 'Please enter your location';
-      notifyListeners();
-      return false;
-    }
-
-    _isLoading = true;
-    _errorMessage = null;
+/// Register user with additional profile details (from Registration Screen)
+Future<bool> registerUser() async {
+  // Validate phone number
+  if (phoneController.text.isEmpty) {
+    _errorMessage = 'Please enter your phone number';
     notifyListeners();
+    return false;
+  }
+
+  // Validate location
+  if (locationController.text.isEmpty) {
+    _errorMessage = 'Please enter your location';
+    notifyListeners();
+    return false;
+  }
+
+  _isLoading = true;
+  _errorMessage = null;
+  notifyListeners();
 
     try {
       User? user = getCurrentUser();
@@ -361,41 +362,101 @@ class AuthViewModel extends ChangeNotifier {
         throw Exception('User not found. Please sign up again.');
       }
 
-      // Get existing driver data (created during signup)
-      PickUpModel? existingDriver = await _repository.getDriverData(user.uid);
+      debugPrint('════════════════════════════════════════');
+      debugPrint('🔹 REGISTER USER - Starting...');
+      debugPrint('════════════════════════════════════════');
 
-      // Update driver profile with additional details
+      // If _currentVendor is null, load it once
+      if (_currentVendor == null) {
+        debugPrint('   ⚠️ _currentVendor is null, loading from Firebase...');
+        await loadDriverData();
+      }
+      
+      // STEP 1: Check if user selected a new image
+      String? finalProfileImageUrl = _currentVendor?.profileImageUrl;
+      
+      if (_selectedImagePath != null) {
+        debugPrint('   📸 New image selected, uploading to Cloudinary...');
+        debugPrint('   Selected image path: $_selectedImagePath');
+        
+        // Update UI to show uploading status
+        notifyListeners();
+        
+        try {
+          final File imageFile = File(_selectedImagePath!);
+          
+          // Upload to Cloudinary
+          final result = await _cloudinaryService.uploadImage(imageFile);
+          
+          if (result != null) {
+            finalProfileImageUrl = result['url'];
+            debugPrint('   ✅ Image uploaded successfully!');
+            debugPrint('   Cloudinary URL: $finalProfileImageUrl');
+            
+            // Clear the selected image path
+            _selectedImagePath = null;
+          } else {
+            debugPrint('   ⚠️ Image upload returned null, keeping existing URL');
+            _selectedImagePath = null; // Clear it anyway
+          }
+        } catch (e) {
+          debugPrint('   ❌ Image upload failed: $e');
+          debugPrint('   Will save profile without updating image');
+          _selectedImagePath = null; // Clear it to prevent retry
+          // Continue with existing image URL
+        }
+      } else {
+        debugPrint('   No new image selected, keeping existing profileImageUrl');
+      }
+      
+      debugPrint('   Current profileImageUrl: $finalProfileImageUrl');
+      debugPrint('   Phone: ${phoneController.text.trim()}');
+      debugPrint('   Location: ${locationController.text.trim()}');
+      debugPrint('   Vehicle Type: ${vehicleTypeController.text.trim()}');
+      debugPrint('   Vehicle Number: ${vehicleNumberController.text.trim()}');
+
+      // STEP 2: Create updated driver object with all data including new image URL
       PickUpModel driver = PickUpModel(
         uid: user.uid,
-        fullName: existingDriver?.fullName ?? usernameController.text.trim(),
-        email: existingDriver?.email ?? emailController.text.trim(),
+        fullName: _currentVendor?.fullName ?? usernameController.text.trim(),
+        email: _currentVendor?.email ?? emailController.text.trim(),
         phoneNumber: phoneController.text.trim(),
         location: locationController.text.trim(),
         vehicleType: vehicleTypeController.text.isNotEmpty 
             ? vehicleTypeController.text.trim() 
-            : null,
+            : _currentVendor?.vehicleType,
         vehicleNumber: vehicleNumberController.text.isNotEmpty 
             ? vehicleNumberController.text.trim() 
-            : null,
-        createdAt: existingDriver?.createdAt ?? DateTime.now(),
+            : _currentVendor?.vehicleNumber,
+        profileImageUrl: finalProfileImageUrl, // ✅ Use uploaded or existing URL
+        createdAt: _currentVendor?.createdAt ?? DateTime.now(),
         updatedAt: DateTime.now(),
       );
 
+      debugPrint('   Final driver object profileImageUrl: ${driver.profileImageUrl}');
+      debugPrint('   Saving to Firebase...');
+
+      // STEP 3: Save everything to Firebase
       await _repository.saveDriverData(driver);
       
-      // Load updated driver data
-      await loadDriverData();
+      debugPrint('   ✅ Saved successfully!');
+      
+      // Update local state with the saved data
+      _currentVendor = driver;
 
-      _isLoading = false;
-      notifyListeners();
-      return true;
-    } catch (e) {
-      _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
-      return false;
-    }
+      debugPrint('════════════════════════════════════════');
+
+    _isLoading = false;
+    notifyListeners();
+    return true;
+  } catch (e) {
+    debugPrint('   ❌ Error in registerUser: $e');
+    _errorMessage = e.toString();
+    _isLoading = false;
+    notifyListeners();
+    return false;
   }
+}
 
   /// Pick image from gallery or camera
   Future<void> pickImage({ImageSource source = ImageSource.gallery}) async {
@@ -431,6 +492,8 @@ class AuthViewModel extends ChangeNotifier {
     try {
       final File imageFile = File(_selectedImagePath!);
       
+      debugPrint('🔹 Step 1: Uploading to Cloudinary...');
+      
       // Upload to Cloudinary using CloudinaryService
       final result = await _cloudinaryService.uploadImage(imageFile);
 
@@ -442,26 +505,73 @@ class AuthViewModel extends ChangeNotifier {
       final String downloadUrl = result['url'];
       final String publicId = result['public_id'];
 
-      debugPrint('Image uploaded successfully: $downloadUrl');
-      debugPrint('Public ID: $publicId');
+      debugPrint('════════════════════════════════════════');
+      debugPrint('✅ STEP 1 COMPLETE: Cloudinary Upload');
+      debugPrint('════════════════════════════════════════');
+      debugPrint('   Cloudinary URL: $downloadUrl');
+      debugPrint('   Public ID: $publicId');
+      debugPrint('   URL length: ${downloadUrl.length}');
+      debugPrint('   URL is not empty: ${downloadUrl.isNotEmpty}');
 
+      debugPrint('');
+      debugPrint('🔹 STEP 2: Creating Updated Driver Model');
+      debugPrint('   Current driver UID: ${_currentVendor!.uid}');
+      debugPrint('   Current profileImageUrl: ${_currentVendor!.profileImageUrl}');
+      debugPrint('   New URL to set: $downloadUrl');
+      
       // Update driver profile with new image URL
       final updatedDriver = _currentVendor!.copyWith(
         profileImageUrl: downloadUrl,
         updatedAt: DateTime.now(),
       );
+      
+      debugPrint('   Updated driver profileImageUrl: ${updatedDriver.profileImageUrl}');
 
+      debugPrint('');
+      debugPrint('🔹 Step 3: Saving to Firebase Firestore...');
+      debugPrint('   Collection: drivers');
+      debugPrint('   Document: ${_currentVendor!.uid}');
+      debugPrint('   Old profileImageUrl: ${_currentVendor!.profileImageUrl}');
+      debugPrint('   New profileImageUrl: $downloadUrl');
+      debugPrint('   updatedDriver.profileImageUrl: ${updatedDriver.profileImageUrl}');
+      
+      // CRITICAL: Save to Firebase with the new URL
       await _repository.saveDriverData(updatedDriver);
       
-      // Update local state
+      debugPrint('✅ Step 3 Complete: Saved to Firebase!');
+      debugPrint('');
+      
+      // CRITICAL: Update local state with the saved driver data
+      // This ensures _currentVendor has the new image URL for when Save Changes is clicked
       _currentVendor = updatedDriver;
+      
+      debugPrint('🔹 Step 4: Updating local state...');
+      debugPrint('   _currentVendor updated!');
+      debugPrint('   _currentVendor.profileImageUrl: ${_currentVendor!.profileImageUrl}');
+      debugPrint('   _currentVendor.uid: ${_currentVendor!.uid}');
+      
+      // Clear selected image path
       _selectedImagePath = null;
       _isUploadingImage = false;
+      
+      // Notify listeners to update UI
       notifyListeners();
+      
+      debugPrint('✅ Step 4 Complete: UI notified!');
+      debugPrint('');
+      debugPrint('════════════════════════════════════════');
+      debugPrint('✅✅✅ IMAGE UPLOAD COMPLETE! ✅✅✅');
+      debugPrint('════════════════════════════════════════');
+      debugPrint('🎉 Final profileImageUrl in _currentVendor: ${_currentVendor!.profileImageUrl}');
+      debugPrint('   URL length: ${_currentVendor!.profileImageUrl?.length ?? 0}');
+      debugPrint('   IMPORTANT: This URL is now in memory and Firebase!');
+      debugPrint('   When you click "Save Changes", this URL will be preserved!');
+      debugPrint('════════════════════════════════════════');
 
       return true;
     } catch (e) {
-      _errorMessage = 'Failed to upload image: ${e.toString()}';
+      debugPrint('❌ Upload failed: $e');
+      _errorMessage = e.toString();
       _isUploadingImage = false;
       notifyListeners();
       return false;

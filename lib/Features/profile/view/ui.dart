@@ -18,13 +18,29 @@ class ProfileScreen extends StatelessWidget {
       body: Consumer2<AuthViewModel, ProfileViewModel>(
         builder: (context, authViewModel, profileViewModel, child) {
           // Update ProfileViewModel whenever AuthViewModel changes
-          WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (authViewModel.currentVendor != null) {
               profileViewModel.setDriverData(authViewModel.currentVendor);
               
               // Set delivery view model if not already set
               final deliveryViewModel = context.read<DeliveryViewModel>();
               profileViewModel.setDeliveryViewModel(deliveryViewModel);
+              
+              // ✅ Load delivery data if not already loaded
+              if (deliveryViewModel.myDeliveries.isEmpty && !deliveryViewModel.isLoading) {
+                debugPrint('📊 ProfileScreen: Loading delivery statistics...');
+                
+                // Set driver ID first
+                deliveryViewModel.setDriverId(authViewModel.currentVendor!.uid);
+                
+                // Fetch deliveries
+                await deliveryViewModel.loadMyDeliveries();
+                
+                debugPrint('📊 ProfileScreen: Delivery stats loaded!');
+                debugPrint('   Total: ${deliveryViewModel.myDeliveries.length}');
+                debugPrint('   Active: ${deliveryViewModel.activeDeliveries.length}');
+                debugPrint('   Completed: ${deliveryViewModel.completedDeliveries.length}');
+              }
             }
           });
           

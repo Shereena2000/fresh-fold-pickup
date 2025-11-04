@@ -97,10 +97,55 @@ class AuthRepository {
 
   // Save driver data to drivers/ collection
   Future<void> saveDriverData(PickUpModel user) async {
-    await _firestore
-        .collection('drivers')
-        .doc(user.uid)
-        .set(user.toMap(), SetOptions(merge: true));
+    print('════════════════════════════════════════');
+    print('🔹 SAVING TO FIREBASE FIRESTORE');
+    print('════════════════════════════════════════');
+    print('   Collection: drivers');
+    print('   Document ID: ${user.uid}');
+    print('   profileImageUrl from model: ${user.profileImageUrl}');
+    
+    final dataToSave = user.toMap();
+    print('   Data to save: $dataToSave');
+    print('   profileImageUrl in map: ${dataToSave['profileImageUrl']}');
+    
+    try {
+      await _firestore
+          .collection('drivers')
+          .doc(user.uid)
+          .set(dataToSave, SetOptions(merge: true));
+      
+      print('✅ Firestore set() completed!');
+      
+      // Wait a moment for Firestore to process
+      await Future.delayed(Duration(milliseconds: 500));
+      
+      // Verify it was saved
+      final doc = await _firestore.collection('drivers').doc(user.uid).get();
+      print('════════════════════════════════════════');
+      print('🔍 VERIFICATION FROM FIREBASE');
+      print('════════════════════════════════════════');
+      print('   Document exists: ${doc.exists}');
+      
+      if (doc.exists) {
+        final data = doc.data();
+        print('   Full document data: $data');
+        print('   profileImageUrl field: ${data?['profileImageUrl']}');
+        print('   Field type: ${data?['profileImageUrl'].runtimeType}');
+        
+        if (data?['profileImageUrl'] == null) {
+          print('⚠️  WARNING: profileImageUrl is NULL in Firebase!');
+          print('   This means the field was not saved properly');
+        } else {
+          print('✅ SUCCESS: profileImageUrl is saved correctly!');
+        }
+      } else {
+        print('❌ ERROR: Document does not exist!');
+      }
+      print('════════════════════════════════════════');
+    } catch (e) {
+      print('❌ Firebase save error: $e');
+      rethrow;
+    }
   }
   
   // Keep for backward compatibility (for vendors if needed)
