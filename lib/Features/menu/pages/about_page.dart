@@ -35,7 +35,7 @@ class AboutPage extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(30),
                 child: Image.asset(
-                  'assets/images/logo.png',
+                  'assets/logo/foreground.png',
                   fit: BoxFit.cover,
                 ),
               ),
@@ -45,7 +45,7 @@ class AboutPage extends StatelessWidget {
             
             // App Name
             Text(
-              'Fresh Fold Pickup',
+              'Growblic Captain',
               style: PTextStyles.displaySmall.copyWith(
                 fontSize: 28,
                 fontWeight: FontWeight.w700,
@@ -106,7 +106,7 @@ class AboutPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'About Fresh Fold',
+                    'About Growblic Captain',
                     style: PTextStyles.displaySmall.copyWith(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
@@ -115,7 +115,7 @@ class AboutPage extends StatelessWidget {
                   ),
                   SizedBox(height: 12),
                   Text(
-                    'Fresh Fold Pickup is a professional laundry pickup and delivery service dedicated to making laundry hassle-free for our customers. As a driver, you are an essential part of our service, ensuring timely pickups and deliveries with excellent customer care.',
+                    'Growblic Captain is a professional laundry pickup and delivery service dedicated to making laundry hassle-free for our customers. As a driver, you are an essential part of our service, ensuring timely pickups and deliveries with excellent customer care.',
                     style: TextStyle(
                       fontSize: 14,
                       color: PColors.darkGray,
@@ -234,7 +234,7 @@ class AboutPage extends StatelessWidget {
 
             // Copyright
             Text(
-              '© 2024 Fresh Fold. All rights reserved.',
+              '© 2024 Growblic Captain. All rights reserved.',
               style: TextStyle(
                 fontSize: 12,
                 color: Colors.grey,
@@ -316,46 +316,6 @@ class AboutPage extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFAQ(String question, String answer) {
-    return Container(
-      margin: EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: PColors.lightGray.withOpacity(0.5)),
-      ),
-      child: Theme(
-        data: ThemeData(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          tilePadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-          title: Text(
-            question,
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: PColors.darkGray,
-            ),
-          ),
-          iconColor: PColors.primaryColor,
-          collapsedIconColor: Colors.grey,
-          children: [
-            Padding(
-              padding: EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Text(
-                answer,
-                style: TextStyle(
-                  fontSize: 13,
-                  color: PColors.darkGray.withOpacity(0.8),
-                  height: 1.5,
-                ),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

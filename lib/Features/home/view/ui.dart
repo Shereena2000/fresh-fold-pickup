@@ -5,7 +5,6 @@ import 'package:fresh_fold_pickup/Features/home/view/widgets/upcoming_widget.dar
 import 'package:fresh_fold_pickup/Features/home/view_model/home_view_model.dart';
 import 'package:fresh_fold_pickup/Settings/common/widgets/custom_tab_section.dart';
 import 'package:fresh_fold_pickup/Settings/constants/sized_box.dart';
-import 'package:fresh_fold_pickup/Settings/utils/p_colors.dart';
 
 import '../../../Settings/common/widgets/custom_app_bar.dart';
 
@@ -39,22 +38,16 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: CustomAppBar(title: 'Orders'),
-      body: RefreshIndicator(
-        onRefresh: () async {
-          await context.read<HomeViewModel>().refreshOrders();
-        },
-        color: PColors.primaryColor,
-        child: Column(
-          children: [
-            SizeBoxH(16),
-            Expanded(
-              child: CustomTabSection(
-                tabTitles: tabTitles,
-                tabContents: tabContents,
-              ),
+      body: Column(
+        children: [
+          SizeBoxH(16),
+          Expanded(
+            child: CustomTabSection(
+              tabTitles: tabTitles,
+              tabContents: tabContents,
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

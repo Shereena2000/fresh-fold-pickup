@@ -94,15 +94,9 @@ class _DeliveryScreenState extends State<DeliveryScreen> {
           
           // Tabs Section
           Expanded(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                await context.read<DeliveryViewModel>().refreshDeliveries();
-              },
-              color: PColors.primaryColor,
-              child: CustomTabSection(
-                tabTitles: deliveryTabTitles,
-                tabContents: deliveryTabContents,
-              ),
+            child: CustomTabSection(
+              tabTitles: deliveryTabTitles,
+              tabContents: deliveryTabContents,
             ),
           ),
         ],
@@ -120,7 +114,23 @@ class ActiveDeliveryWidget extends StatelessWidget {
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
           return Center(
-            child: CircularProgressIndicator(color: PColors.primaryColor),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: PColors.primaryColor,
+                  strokeWidth: 3,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Loading deliveries...',
+                  style: TextStyle(
+                    color: PColors.darkGray,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
@@ -148,42 +158,75 @@ class ActiveDeliveryWidget extends StatelessWidget {
 
         final activeDeliveries = viewModel.activeDeliveries;
 
-        if (activeDeliveries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  viewModel.searchQuery.isNotEmpty 
-                      ? Icons.search_off 
-                      : Icons.delivery_dining,
-                  size: 64,
-                  color: Colors.grey,
+        // ✅ Wrap with RefreshIndicator for pull-to-refresh
+        return RefreshIndicator(
+          onRefresh: () async {
+            await viewModel.refreshDeliveries();
+          },
+          color: PColors.primaryColor,
+          backgroundColor: Colors.white,
+          strokeWidth: 3.0,
+          displacement: 40.0,
+          child: activeDeliveries.isEmpty
+              ? ListView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(16),
+                  children: [
+              SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      viewModel.searchQuery.isNotEmpty 
+                          ? Icons.search_off 
+                          : Icons.delivery_dining,
+                      size: 64,
+                      color: Colors.grey,
+                    ),
+                    SizedBox(height: 16),
+                    Text(
+                      viewModel.searchQuery.isNotEmpty
+                          ? 'No results found'
+                          : 'No active deliveries',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                    SizedBox(height: 8),
+                    Text(
+                      viewModel.searchQuery.isNotEmpty
+                          ? 'Try a different search term'
+                          : 'Take orders from the Home screen',
+                      style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                    ),
+                    if (viewModel.searchQuery.isEmpty) ...[
+                      SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.refresh, size: 16, color: PColors.primaryColor),
+                          SizedBox(width: 6),
+                          Text(
+                            'Pull down to refresh',
+                            style: TextStyle(
+                              color: PColors.primaryColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ],
                 ),
-                SizedBox(height: 16),
-                Text(
-                  viewModel.searchQuery.isNotEmpty
-                      ? 'No results found'
-                      : 'No active deliveries',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  viewModel.searchQuery.isNotEmpty
-                      ? 'Try a different search term'
-                      : 'Take orders from the Home screen',
-                  style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: ListView.builder(
-            itemCount: activeDeliveries.length,
-            itemBuilder: (context, index) {
+              ),
+            ],
+          )
+              : Padding(
+                  padding: EdgeInsets.all(16),
+                  child: ListView.builder(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    itemCount: activeDeliveries.length,
+                    itemBuilder: (context, index) {
               final orderData = activeDeliveries[index];
 
               return OrderCard(
@@ -219,6 +262,7 @@ class ActiveDeliveryWidget extends StatelessWidget {
               );
             },
           ),
+        ),
         );
       },
     );
@@ -262,43 +306,71 @@ class CompletedDeliveryWidget extends StatelessWidget {
 
         final completedDeliveries = viewModel.completedDeliveries;
 
-        if (completedDeliveries.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  viewModel.searchQuery.isNotEmpty 
-                      ? Icons.search_off 
-                      : Icons.check_circle_outline,
-                  size: 64,
-                  color: Colors.grey,
-                ),
-                SizedBox(height: 16),
-                Text(
-                  viewModel.searchQuery.isNotEmpty
-                      ? 'No results found'
-                      : 'No completed deliveries',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-                if (viewModel.searchQuery.isNotEmpty)
-                  Padding(
-                    padding: EdgeInsets.only(top: 8),
-                    child: Text(
-                      'Try a different search term',
-                      style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+        // ✅ Wrap with RefreshIndicator for pull-to-refresh
+        return RefreshIndicator(
+          onRefresh: () async {
+            await viewModel.refreshDeliveries();
+          },
+          color: PColors.primaryColor,
+          backgroundColor: Colors.white,
+          strokeWidth: 3.0,
+          displacement: 40.0,
+          child: completedDeliveries.isEmpty
+              ? ListView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.all(16),
+                  children: [
+              SizedBox(height: MediaQuery.of(context).size.height * 0.2),
+              Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      viewModel.searchQuery.isNotEmpty 
+                          ? Icons.search_off 
+                          : Icons.check_circle_outline,
+                      size: 64,
+                      color: Colors.grey,
                     ),
-                  ),
-              ],
-            ),
-          );
-        }
-
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: ListView.builder(
-            itemCount: completedDeliveries.length,
-            itemBuilder: (context, index) {
+                    SizedBox(height: 16),
+                    Text(
+                      viewModel.searchQuery.isNotEmpty
+                          ? 'No results found'
+                          : 'No completed deliveries',
+                      style: TextStyle(color: Colors.grey, fontSize: 16),
+                    ),
+                    SizedBox(height: 8),
+                    viewModel.searchQuery.isNotEmpty
+                        ? Text(
+                            'Try a different search term',
+                            style: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                          )
+                        : Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.refresh, size: 16, color: PColors.primaryColor),
+                              SizedBox(width: 6),
+                              Text(
+                                'Pull down to refresh',
+                                style: TextStyle(
+                                  color: PColors.primaryColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                  ],
+                ),
+              ),
+            ],
+          )
+              : Padding(
+                  padding: EdgeInsets.all(16),
+                  child: ListView.builder(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    itemCount: completedDeliveries.length,
+                    itemBuilder: (context, index) {
               final orderData = completedDeliveries[index];
 
               return OrderCard(
@@ -334,6 +406,7 @@ class CompletedDeliveryWidget extends StatelessWidget {
               );
             },
           ),
+        ),
         );
       },
     );

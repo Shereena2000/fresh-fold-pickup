@@ -16,7 +16,23 @@ class UpcomingWidget extends StatelessWidget {
       builder: (context, viewModel, child) {
         if (viewModel.isLoading) {
           return Center(
-            child: CircularProgressIndicator(),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(
+                  color: PColors.primaryColor,
+                  strokeWidth: 3,
+                ),
+                SizedBox(height: 16),
+                Text(
+                  'Loading orders...',
+                  style: TextStyle(
+                    color: PColors.darkGray,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           );
         }
 
@@ -41,27 +57,57 @@ class UpcomingWidget extends StatelessWidget {
 
         final upcomingOrders = viewModel.upcomingOrders;
 
-        if (upcomingOrders.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
-                Text(
-                  'No upcoming orders',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
-                ),
-              ],
-            ),
-          );
-        }
-
-        return Padding(
-          padding: EdgeInsets.all(16),
-          child: ListView.builder(
-            itemCount: upcomingOrders.length,
-            itemBuilder: (context, index) {
+        // ✅ Wrap with RefreshIndicator for pull-to-refresh
+        return RefreshIndicator(
+          onRefresh: () async {
+            await viewModel.refreshOrders();
+          },
+          color: PColors.primaryColor,
+          backgroundColor: Colors.white,
+          strokeWidth: 3.0,
+          displacement: 40.0,
+          child: upcomingOrders.isEmpty
+              ? ListView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  children: [
+                    SizedBox(height: MediaQuery.of(context).size.height * 0.25),
+                    Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.calendar_today_outlined, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text(
+                            'No upcoming orders',
+                            style: TextStyle(color: Colors.grey, fontSize: 16),
+                          ),
+                          SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.refresh, size: 16, color: PColors.primaryColor),
+                              SizedBox(width: 6),
+                              Text(
+                                'Pull down to refresh',
+                                style: TextStyle(
+                                  color: PColors.primaryColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                )
+              : Padding(
+                  padding: EdgeInsets.all(16),
+                  child: ListView.builder(
+                    physics: AlwaysScrollableScrollPhysics(),
+                    itemCount: upcomingOrders.length,
+                    itemBuilder: (context, index) {
               final orderData = upcomingOrders[index];
               
               return OrderCard(
@@ -180,6 +226,7 @@ class UpcomingWidget extends StatelessWidget {
               );
             },
           ),
+        ),
         );
       },
     );

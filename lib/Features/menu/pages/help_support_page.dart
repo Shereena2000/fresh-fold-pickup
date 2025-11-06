@@ -54,10 +54,10 @@ class HelpSupportPage extends StatelessWidget {
               context,
               icon: Icons.phone,
               title: 'Phone Support',
-              subtitle: '+1 (555) 123-4567',
+              subtitle: '+91 92531 41908',
               description: 'Available 24/7 for urgent issues',
               onTap: () {
-                CallUtils.makePhoneCall(context, '+15551234567');
+                CallUtils.confirmAndCall(context, '+919253141908', 'Growblic Captain Support');
               },
             ),
 
@@ -67,7 +67,7 @@ class HelpSupportPage extends StatelessWidget {
               context,
               icon: Icons.email,
               title: 'Email Support',
-              subtitle: 'support@freshfold.com',
+              subtitle: 'freshfold.growblic@gmail.com',
               description: 'Response within 24 hours',
               onTap: () {
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -76,20 +76,20 @@ class HelpSupportPage extends StatelessWidget {
               },
             ),
 
-            SizedBox(height: 12),
+            // SizedBox(height: 12),
 
-            _buildContactCard(
-              context,
-              icon: Icons.chat_bubble_outline,
-              title: 'Live Chat',
-              subtitle: 'Chat with our support team',
-              description: 'Available Mon-Fri, 9 AM - 6 PM',
-              onTap: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Live chat - Coming soon!')),
-                );
-              },
-            ),
+            // _buildContactCard(
+            //   context,
+            //   icon: Icons.chat_bubble_outline,
+            //   title: 'Live Chat',
+            //   subtitle: 'Chat with our support team',
+            //   description: 'Available Mon-Fri, 9 AM - 6 PM',
+            //   onTap: () {
+            //     ScaffoldMessenger.of(context).showSnackBar(
+            //       SnackBar(content: Text('Live chat - Coming soon!')),
+            //     );
+            //   },
+            // ),
 
             SizedBox(height: 32),
 
@@ -146,48 +146,48 @@ class HelpSupportPage extends StatelessWidget {
 
             SizedBox(height: 32),
 
-            // Support Hours
-            Container(
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: PColors.primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: PColors.primaryColor.withOpacity(0.3)),
-              ),
-              child: Column(
-                children: [
-                  Icon(Icons.access_time, color: PColors.primaryColor, size: 28),
-                  SizedBox(height: 8),
-                  Text(
-                    'Support Hours',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: PColors.primaryColor,
-                    ),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Monday - Friday: 9:00 AM - 6:00 PM\nSaturday: 10:00 AM - 4:00 PM\nSunday: Closed',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: PColors.darkGray,
-                      height: 1.5,
-                    ),
-                  ),
-                  SizedBox(height: 12),
-                  Text(
-                    'Emergency Support: 24/7',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w600,
-                      color: PColors.primaryColor,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            // // Support Hours
+            // Container(
+            //   padding: EdgeInsets.all(16),
+            //   decoration: BoxDecoration(
+            //     color: PColors.primaryColor.withOpacity(0.1),
+            //     borderRadius: BorderRadius.circular(12),
+            //     border: Border.all(color: PColors.primaryColor.withOpacity(0.3)),
+            //   ),
+            //   child: Column(
+            //     children: [
+            //       Icon(Icons.access_time, color: PColors.primaryColor, size: 28),
+            //       SizedBox(height: 8),
+            //       Text(
+            //         'Support Hours',
+            //         style: TextStyle(
+            //           fontSize: 16,
+            //           fontWeight: FontWeight.w700,
+            //           color: PColors.primaryColor,
+            //         ),
+            //       ),
+            //       SizedBox(height: 8),
+            //       Text(
+            //         'Monday - Friday: 9:00 AM - 6:00 PM\nSaturday: 10:00 AM - 4:00 PM\nSunday: Closed',
+            //         textAlign: TextAlign.center,
+            //         style: TextStyle(
+            //           fontSize: 14,
+            //           color: PColors.darkGray,
+            //           height: 1.5,
+            //         ),
+            //       ),
+            //       SizedBox(height: 12),
+            //       Text(
+            //         'Emergency Support: 24/7',
+            //         style: TextStyle(
+            //           fontSize: 13,
+            //           fontWeight: FontWeight.w600,
+            //           color: PColors.primaryColor,
+            //         ),
+            //       ),
+            //     ],
+            //   ),
+            // ),
 
             SizedBox(height: 24),
           ],
@@ -305,34 +305,6 @@ class HelpSupportPage extends StatelessWidget {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildSection(String title, String content) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            title,
-            style: PTextStyles.displaySmall.copyWith(
-              fontSize: 17,
-              fontWeight: FontWeight.w700,
-              color: PColors.primaryColor,
-            ),
-          ),
-          SizedBox(height: 10),
-          Text(
-            content,
-            style: PTextStyles.bodyMedium.copyWith(
-              fontSize: 14,
-              color: PColors.darkGray,
-              height: 1.6,
-            ),
-          ),
-        ],
       ),
     );
   }

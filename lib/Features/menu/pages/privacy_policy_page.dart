@@ -26,7 +26,7 @@ class PrivacyPolicyPage extends StatelessWidget {
                 SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    'Fresh Fold Privacy Policy',
+                    'Growblic Captain Privacy Policy',
                     style: PTextStyles.displaySmall.copyWith(
                       fontSize: 22,
                       fontWeight: FontWeight.w700,
@@ -50,7 +50,7 @@ class PrivacyPolicyPage extends StatelessWidget {
             // Introduction
             _buildSection(
               'Introduction',
-              'Welcome to Fresh Fold Pickup Driver App. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our driver application.',
+              'Welcome to Growblic Captain Driver App. We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our driver application.',
             ),
 
             // Data Collection
@@ -82,7 +82,7 @@ class PrivacyPolicyPage extends StatelessWidget {
               '3. Data Sharing and Disclosure',
               'We share your information only in the following circumstances:\n\n'
               '• With Customers: Your name and contact details are shared with customers for their orders\n'
-              '• With Admin: Fresh Fold administrators can access your delivery records\n'
+              '• With Admin: Growblic Captain administrators can access your delivery records\n'
               '• Service Providers: We use Firebase, Cloudinary, and Google Maps services\n'
               '• Legal Requirements: When required by law or to protect our rights',
             ),
@@ -152,9 +152,8 @@ class PrivacyPolicyPage extends StatelessWidget {
             _buildSection(
               '10. Contact Us',
               'If you have questions or concerns about this Privacy Policy, please contact us:\n\n'
-              '• Email: support@freshfold.com\n'
-              '• Phone: +1 (555) 123-4567\n'
-              '• Address: 123 Laundry Lane, Clean City, CC 12345\n\n'
+              '• Email: freshfold.growblic@gmail.com\n'
+              '• Phone: +91 92531 41908\n\n'
               'We will respond to your inquiry within 48 hours.',
             ),
 
