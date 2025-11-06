@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import '../../home/view_model/home_view_model.dart';
 import '../../home/repository/order_manage_repository.dart';
+import '../../add_billing/repository/order_billing_repository.dart';
 
 class OrderDetailViewModel extends ChangeNotifier {
   final OrderCardData orderData;
   final OrderManageRepository _repository = OrderManageRepository();
+  final OrderBillingRepository _billingRepository = OrderBillingRepository();
   
   bool _isUpdating = false;
   String? _errorMessage;
@@ -91,19 +93,37 @@ class OrderDetailViewModel extends ChangeNotifier {
         throw Exception('Schedule ID is empty');
       }
       
+      // STEP 1: Update schedule status in users/{userId}/schedules/{scheduleId}
       await _repository.updateOrderStatus(
         orderData.schedule.userId,
         orderData.schedule.scheduleId,
         newStatus,
       );
+      debugPrint('✅ Schedule status updated to: $newStatus');
       
-      debugPrint('Status updated successfully in Firebase');
+      // STEP 2: If marking as "paid", also update payment status in payment_requests
+      if (newStatus == 'paid') {
+        try {
+          await _billingRepository.updatePaymentStatus(
+            orderData.schedule.userId,
+            orderData.schedule.scheduleId,
+            'paid',
+          );
+          debugPrint('✅ Payment status updated to: paid');
+        } catch (e) {
+          // Payment request might not exist if billing wasn't created
+          debugPrint('⚠️ Could not update payment status (billing might not exist): $e');
+          // Don't fail the whole operation if payment request doesn't exist
+        }
+      }
+      
+      debugPrint('✅ Status update completed successfully');
       
       _isUpdating = false;
       notifyListeners();
       return true;
     } catch (e) {
-      debugPrint('Error updating status: $e');
+      debugPrint('❌ Error updating status: $e');
       _errorMessage = 'Failed to update status: ${e.toString()}';
       _isUpdating = false;
       notifyListeners();
